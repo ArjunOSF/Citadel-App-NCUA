@@ -20,6 +20,7 @@ from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 from db import init_db, seed_users, tx, log
@@ -99,7 +100,12 @@ def _find_claude_cli() -> Optional[str]:
     return None
 
 # ────────────────────────── App setup ──────────────────────────
-app = FastAPI(title="Osfin - Account Reconciliation")
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+app = FastAPI(
+    title="Osfin - Account Reconciliation",
+    swagger_ui_parameters={"persistAuthorization": True},
+)
 
 # CORS configuration - allow configured origins in production, all in dev
 _cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
@@ -153,7 +159,11 @@ def _visible_to(row: dict, user: dict, role_field: str) -> bool:
     return _user_matches(assigned, user)
 
 
-def get_user(authorization: Optional[str] = Header(None), token: Optional[str] = None):
+def get_user(
+    authorization: Optional[str] = Header(None),
+    token: Optional[str] = None,
+    _creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
+):
     """Token = username. Accepts either:
        • Authorization header: 'Bearer <username>' (preferred, used by fetch calls)
        • ?token= query string (used for <a href> downloads that can't set headers)
@@ -161,6 +171,8 @@ def get_user(authorization: Optional[str] = Header(None), token: Optional[str] =
     username = None
     if authorization and authorization.startswith("Bearer "):
         username = authorization.replace("Bearer ", "").strip()
+    elif _creds:
+        username = _creds.credentials.strip()
     elif token:
         username = token.strip()
     if not username:
