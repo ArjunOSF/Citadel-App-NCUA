@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ .
 
-# Persistent data directory for SQLite — mount a volume here in production
-RUN mkdir -p /data
+# Persistent directories — mount volumes at /data (SQLite) and /app/uploads in production
+RUN mkdir -p /data /app/uploads
 ENV RECON_DB_PATH=/data/recon.db
 
 # Expose port

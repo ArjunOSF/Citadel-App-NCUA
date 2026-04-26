@@ -1,0 +1,26 @@
+version: '3.8'
+
+# Production deployment — no source bind-mounts, no hot reload.
+# Required env vars (set in shell or .env file):
+#   CORS_ORIGINS=https://your-app.vercel.app
+#   ANTHROPIC_API_KEY=sk-ant-...   (optional, for invoice PDF extraction)
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - recon_data:/data
+      - uploads_data:/app/uploads
+    restart: unless-stopped
+
+volumes:
+  recon_data:
+  uploads_data:
