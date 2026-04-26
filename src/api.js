@@ -1,6 +1,9 @@
 // Thin wrapper around fetch() that adds the auth header and
 // parses JSON responses (throwing on non-2xx).
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Empty string → same-origin (Vercel). Explicit URL → separate backend (local dev / Docker).
+const BASE = import.meta.env.VITE_API_URL !== undefined
+  ? import.meta.env.VITE_API_URL
+  : "http://localhost:8000";
 
 function getToken() {
   return localStorage.getItem("recon_token") || "";

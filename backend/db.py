@@ -34,8 +34,12 @@ if _ENV:
 else:
     _local = Path(__file__).parent / "data" / "recon.db"
     _home  = Path.home() / ".recon-app" / "recon.db"
+    _tmp   = Path("/tmp") / "recon.db"
     if _probe_ok(_local):
         DB_PATH = _local
+    elif _probe_ok(_tmp):
+        # Vercel / read-only filesystems: /tmp is always writable
+        DB_PATH = _tmp
     else:
         # Clean up any zombie probe file left in the workspace
         for p in (_local, _local.parent / "recon.db-journal"):

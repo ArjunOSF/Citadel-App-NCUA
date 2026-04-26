@@ -113,8 +113,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = Path(__file__).parent / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path(os.environ.get("RECON_UPLOAD_DIR", str(Path(__file__).parent / "uploads")))
+UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 
 @app.get("/health")
